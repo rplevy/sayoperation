@@ -26,7 +26,7 @@
         (with-caution [[id] {:id id}]
           (dosync
            (heard-from id)
-           (notify-all (json-str (global-data)) id))
+           (notify-all (json-str (global-data)) @*users* id))
           (or (game-state id) id))))
   
   (POST "/sayop-svc/new-game/*" {{id1 "id1" id2 "id2"} :params :as request}
@@ -50,7 +50,7 @@
                 (update-game id1 id2 (read-json move))
                 ;; notify everyone if high-score title changed hands
                 (when (not= hst (high-score-team))
-                  (notify-all (json-str (global-data)) id1)))
+                  (notify-all (json-str (global-data)) @*users* id1)))
               (when (ready? id2)
                 (notify id2 (json-str (game-state id2)))))
              (game-state id1))))
