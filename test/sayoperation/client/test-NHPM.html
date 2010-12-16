@@ -1,0 +1,70 @@
+<!-- Based on http://blog.jamieisaacs.com/2010/08/27/comet-with-nginx-and-jquery/ -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"> 
+    <head> 
+        <title>Listen</title> 
+        <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+        <script type="text/javascript">
+   google.load("jquery", "1.4.2");
+
+   function listen(last_modified, etag) {
+       $.ajax({
+           'beforeSend': function(xhr) {
+               xhr.setRequestHeader("If-None-Match", etag);
+               xhr.setRequestHeader("If-Modified-Since", last_modified);
+           },
+           url: '/sayop/sub?id=1',
+           dataType: 'text',
+           type: 'get',
+           cache: 'false',
+           success: function(data, textStatus, xhr) {
+               etag = xhr.getResponseHeader('Etag');
+               last_modified = xhr.getResponseHeader('Last-Modified');
+
+               div = $('<div class="msg">').text(data);
+               info = $('<div class="info">').text('Last-Modified: ' + last_modified + ' | Etag: ' + etag);
+
+               $('#data').prepend(div);
+               $('#data').prepend(info);
+
+               /* Start the next long poll. */
+               listen(last_modified, etag);
+           },
+           error: function(xhr, textStatus, errorThrown) {
+               $('#data').prepend(textStatus + ' | ' + errorThrown);
+           }
+       });
+   };
+
+   // initiate the first long poll
+   google.setOnLoadCallback(function() {
+       setTimeout(function() {
+           listen('', '');
+       }, 500);
+   });
+        </script> 
+        <style type="text/css"> 
+            #data {
+                margin: .5em;
+            }
+
+            #data .info {
+                font-weight: bold;
+                font-size: 14px;
+            }
+
+            #data .msg {
+                white-space: pre;
+                font-family: courier;
+                font-size: 14px;
+                margin-bottom: .5em;
+                margin-left: .5em;
+            }
+        </style>
+   </head> 
+   <body>
+      <b>To trigger events on this test page, send a POST request:</b><br><ul> <tt>curl -H 'Content-Type: text/html; charset=utf-8' -d 'Hello Hello' 'http://localhost/sayop/pub/?id=1'</tt></ul><br>
+   <div id="data"></div>
+   </body> 
+</html>

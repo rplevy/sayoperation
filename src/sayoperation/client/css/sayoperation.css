@@ -1,0 +1,106 @@
+body { 
+    background-color: #FBFFD0;
+}
+
+#heading { 
+    position: fixed; 
+    top: 15px; 
+    width: 520px; 
+    height:105px; 
+    background-color: #3C4011;  
+    color: #EFFE43; 
+    font-family: arial; 
+}
+
+.middlepane {
+    position: fixed;
+    top: 125px;
+    width: 498px;
+    height:260px;
+    border:2px solid #ccc;
+    padding: 10px;
+    font-family: arial;
+}
+
+#howto { 
+    background-color: #181907;
+    color: #FEFFED;
+    overflow: scroll;
+}
+
+#play { 
+    display: none;
+}
+
+#new { 
+    display: none;
+}
+
+#newuser { 
+    display: none;
+}
+
+#ml { 
+    display: none;
+}
+
+#games { 
+    display: none;
+}
+
+#menu { 
+    position: fixed;
+    top: 15px;
+    left: 535px;
+    width: 140px;
+    height:384px;
+    padding: 5px;
+    background-color: #3C4011;
+    color: #F3FF72;
+    font-family: arial;
+}
+
+#talk { 
+    position: fixed;
+    top: 415px;
+    height: 25px;
+    width:700px;
+}
+
+#instructionbox {
+    height:25px; 
+    width:595px; 
+    background-color: #EFFE43; 
+    font-family: arial; 
+    font-size: 15pt;
+}
+
+.err {
+    color: #FF0000;
+}
+      
+.draggable { 
+    width: 80px;
+    height: 80px;
+}
+
+.names { 
+    color: #F8FFA2;
+}
+
+.linkstyle1 { 
+    color: #F8FFA2;
+    text-decoration:none;
+    font-style: bold;
+}
+ 
+.linkstyle2 { 
+    color: #FEFFED;
+    text-decoration:none;
+    font-style: bold;
+}
+
+.ui-widget-content {
+    border: 0; 
+    background: #FBFFD0;
+}

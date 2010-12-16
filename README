@@ -1,0 +1,127 @@
+# sayoperation
+
+A game to collect data for experiments in machine learning of natural language semantics.
+
+
+## Overview
+
+Statistical methods are ideal for building natural language understanding systems that are grounded directly in meaningful actions, as opposed to supposedly general-purpose formal logic expressions. The goal of this project is to construct a natural language understanding task for a limited domain, with learnability in mind; the domain of utterances referring to movements of objects in relation to other objects.  The data is collected by players of the game "sayoperation".  After collecting the data it will be possible to add a computer player to the game that is able to make moves based on natural language instructions.  The AI player's moves will be determined by a log-linear ranking algorithm (using jCarafe) trained on the human players' game data.  To test whether meaningful learning occured, first novel never-before-seen combinations of the same objects (nouns) will be presented, followed by a second test using never-before seen nouns.
+
+
+## Usage
+
+This is a web-based game.  Instructions are included on the web page. 
+
+
+## Installation (or: How to Run Your Own Instance of This Web Application on Your Server)
+
+The high-level architecture of the application looks like this:
+
+    x----------------------x
+    |Front-end (Javascript)|
+    |Multiple browsers     |
+    x----------------------x
+   1 |    /|\             | 2
+     |     |              | 
+    \|/    | 3            |
+    x-----------------x   |
+    |Middle-End (NHPM)|   |
+    x-----------------x   |
+          /|\             |
+           |              |
+           | 3           \|/
+    x-------------------------x
+    |Back-end (Tomcat/Clojure)|
+    x-------------------------x
+
+    Types of messages:
+      1. Subscribe message is passed from 
+         the front-end to the middle end.
+         For each client online there should 
+         be a subscription request. It must be 
+         renewed after each time the middle 
+         end communicates with the front end.
+         The ONLY purpose of message type 1
+         is to establish a channel for the 
+         middle-end to communicate back. 
+         All messages TO the back-end are sent 
+         directly (type 2).
+      2. A message passed directly to the
+         back-end (a traditional web service 
+         API type of request to send messages
+         to the server / receive info).
+      3. Back-end publishes information for a 
+         specific subscriber to the middle-end,
+         which in turn notifies the subscriber.
+ 
+Sayoperation uses Nginx Http Push Module (NHPM) to handle http long-polling between the browser client and the server.  It manages the details underlying an abstraction of subscribing and publishing.  The client makes a standing subscription request to the middle-end, so that the back-end server can publish information to clients (the request must be renewed each time it receives a message).
+
+Nginx configuration
+
+The front end is pure HTML/Javascript, using the jQuery library. It only needs to be served statically.  Nginx can proxy Apache, but in my case, since I don't need Apache for anything in particular, I am serving the static front end from the Nginx document root.  Importantly everything must be on the same domain/port in order for browsers to allow the front-end to perform ajax requests.  The back end, a Clojure servlet, runs in Tomcat which is proxied by nginx.  Tomcat is running on port 8080 and is proxied by nginx.
+
+Front-end setup
+
+  The front-end (composed only of statically served files) is placed in the document root (assumed below to be /var/www). The following javascript libraries are included in resources/js:
+
+    jquery-1.4.2.min.js
+    jquery-ui-1.8.5.custom.min.js
+    jquery.cookie.js
+  
+  The resources directory also contains other nececessary elements such as CSS and images. Be sure to copy or link these resources into the document-root.
+    
+Middle-end setup
+
+  Compile Nginx with the HTTP Push Module and run Nginx on port 80, using the configuration sections below in nginx.conf.
+
+    server {
+
+        # front-end
+
+        listen       80;
+        server_name  localhost;
+        root   /var/www;
+        index  index.html;
+
+        # middle-end
+
+        location /sayop {
+
+            push_channel_group pushmodule_sayop;
+
+            location /sayop/pub {
+                set $push_channel_id $arg_id;
+                push_publisher;
+                push_message_timeout 10s;
+                push_message_buffer_length 50;
+            }
+
+            location /sayop/sub {
+                set $push_channel_id $arg_id;
+                push_subscriber;
+                send_timeout 3600;
+            }
+        }
+
+        # back-end
+
+        location /sayop-svc {
+            proxy_pass        http://localhost:8080;
+            proxy_set_header  X-Real-IP  $remote_addr;
+        }
+    }
+
+Back-end Setup
+
+  Tomcat is assumed to run on port 8080.  To deploy the servlet to run in Tomcat, do as follows:
+
+    lein uberwar
+
+    TODO: COMPLETE THE INSTRUCTIONS
+
+
+## License
+
+Copyright (C) 2010 Robert P. Levy
+
+Distributed under Affero General Public License.
