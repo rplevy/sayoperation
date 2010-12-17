@@ -7,27 +7,26 @@
     <script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
     <script type="text/javascript" src="js/jquery-ui-1.8.5.custom.min.js"></script>
     <script type="text/javascript" src="js/jquery.cookie.js"></script>
-    <script type="text/javascript" src="js/core.js"></script>
+    <script type="text/javascript" src="js/client.js"></script>
   </head>
   <body>
     <div id="heading">
       <noscript>
         <span class="err">
-          Your browser does not support JavaScript?  Well sorry, this game depends heavily on Javascript.
+          Please enable Javascript. This application depends heavily on it.
         </span>
       </noscript>
       <h1>SAY&Ouml;PERATION</h1>
       <h3> 
+        <a href="javascript:page('login')" class="linkstyle2">jump in</a> / 
         <a href="javascript:page('howto')" class="linkstyle1">instructions</a> /
         <a href="javascript:page('play')" class="linkstyle2">play</a> / 
-        <a href="javascript:page('games')" class="linkstyle1">your games</a> / 
-        <a href="javascript:page('new')" class="linkstyle2">new</a> / 
         <a href="javascript:page('ml')" class="linkstyle1">machine learning</a> / 
       </h3>
     </div>
 
     <div id="howto" class="middlepane">
-      <p>SAY&Ouml;PERATION is an open <a href="http://github.com/rplevy/sayoperation" class="linkstyle1">source</a> game, built using <a href="http://clojure.org" class="linkstyle1">Clojure</a> and <a href="http://jquery.org" class="linkstyle1">JQuery</a>, for the purpose of collecting a corpus of natural language utterances that are causally linked to actions, so as to train a <a href="javascript:page('ml')" class="linkstyle1">probabilistic classifier</a> to pick up on the semantics of natural language within the limited domain of this game.  The first experiment is a very simple task (see below for instructions on how to play), but further levels with more complex (and even more fun for the participants) requirements are likely to be added for addtional machine learning experiments.
+      <p>SAY&Ouml;PERATION is a <a href="http://github.com/rplevy/sayoperation" class="linkstyle1">free and open source</a> game, using <a href="http://clojure.org" class="linkstyle1">Clojure</a> and <a href="http://jquery.org" class="linkstyle1">JQuery</a>, for the purpose of collecting a corpus of natural language utterances that are causally linked to actions, so as to train a <a href="javascript:page('ml')" class="linkstyle1">probabilistic classifier</a> to pick up on the semantics of natural language within the limited domain of this game.  The first experiment is a very simple task (see below for instructions on how to play), but further levels with more complex (and even more fun for the participants) requirements are likely to be added for addtional machine learning experiments.
       </p>
       <p>
         The player who initiates the game is presented with a board containing variously shaped/colored game pieces.  One of the pieces on the board is highlighted and one of the empty spaces is marked as a target.  Player 2 is presented with the same game board, but cannot see what piece to move or where the target is.  Player 1's challenge is to type an instruction to player 2 identifying the piece and the target location to move it to.  After Player 2 makes a move by dragging and dropping the piece to the hidden target, it is Player 2's turn.  Player 2 is presented with a highlighted game piece and a target that Player 1 can't see, and must type a description for Player 1 to enact.  The process is repeated until the players graduate to the next level.  Each successful move earns points for the team.  The global high score is constantly updated and displayed on the right-hand menu.
@@ -40,34 +39,34 @@
           <li>Please only type instructions into the text field.  I haven't added the chat box yet. :)</li>
         </ul>
       </p>
-      To <a href="javascript:page('new')" class="linkstyle1">start a new game</a>, select someone who is online, or invite someone to play.  You can pick up on any games you have already started (provided your teammate is available to play) by clicking  <a href="javascript:page('play')" class="linkstyle1">play</a> on the menu above.
+      To start a new game, click on the name of someone who is online, or invite someone to play.  You can pick up on any games you have already started (provided your teammate is available to play) by clicking  <a href="javascript:page('play')" class="linkstyle1">play</a> on the menu above. Your turns for various games will be available to play as soon as the other player makes their play.
       </p>
     </div>
-
-    <div id="new" class="middlepane">
-      <p>
-      Play a game with: <select><option>Users online right now...</option></select>
+    <div id="login" class="middlepane">
+      <p id="loggedinas">Not logged in</p>
+      <p>Alias: <input type="text" id="username"> <input type="button" value="Login (or Create if New)" onclick="javascript:user()">
       </p>
-      Or invite: <input type="text" id="invite"> <input type="button" value="Invite" onclick="javascript:invite_user()">
-    </div>
-
-    <div id="newuser" class="middlepane">
-      <p>Username: <input type="text" id="username"> <input type="button" value="Create New" onclick="javascript:new_user()"> <input type="button" value="Use Existing" onclick="javascript:existing_user()">
-      </p>
-    </div>
-
-    <div id="games" class="middlepane">
-      <div id="noturns">
-        (It is not your turn in any games. You can start more new games by clicking "new" above.)
-      </div>
-      <div id="allgames">
-      </div>
     </div>
 
     <div id="play" class="middlepane">
-      <div id="draggable" class="draggable ui-widget-content">
-        <img src="svg/blue-moth.svg">
-      </div>
+      <div name="0-0" class="draggable ui-widget-content"></div>
+      <div name="1-0" class="draggable ui-widget-content"></div>
+      <div name="2-0" class="draggable ui-widget-content"></div>
+      <div name="3-0" class="draggable ui-widget-content"></div>
+      <div name="4-0" class="draggable ui-widget-content"></div>
+      <div name="5-0" class="draggable ui-widget-content"></div>
+      <div name="0-1" class="draggable ui-widget-content"></div>
+      <div name="1-1" class="draggable ui-widget-content"></div>
+      <div name="2-1" class="draggable ui-widget-content"></div>
+      <div name="3-1" class="draggable ui-widget-content"></div>
+      <div name="4-1" class="draggable ui-widget-content"></div>
+      <div name="5-1" class="draggable ui-widget-content"></div>
+      <div name="0-2" class="draggable ui-widget-content"></div>
+      <div name="1-2" class="draggable ui-widget-content"></div>
+      <div name="2-2" class="draggable ui-widget-content"></div>
+      <div name="3-2" class="draggable ui-widget-content"></div>
+      <div name="4-2" class="draggable ui-widget-content"></div>
+      <div name="5-2" class="draggable ui-widget-content"></div>
     </div>
 
     <div id="ml" class="middlepane">
@@ -77,21 +76,31 @@
     <div id="menu">
       <h4>high score:</h4>
       <ul>
-        <p class="names">Jack & Jill: 900</p>
+        <p class="names" id="globalhigh"></p>
       </ul>
       <h4>your high score:</h4>
       <ul>
-        <p class="names">Fred & Mary: 500</p>
+        <p class="names" id="personalhigh"></p>
       </ul>
-      <h4>players online:</h4>
-      <a class="names">Fred</a> / <a class="names">Mary</a> / <a class="names">Jane</a> / <a class="names">Jack</a> / <a class="names">Jill</a> 
+      <h4>people online:</h4>
+        <p class="names" id="online">
+        </p>
     </div>
 
     <div id="talk">
-      <form><input type="button" value="Instruct" style="height:30px">
-          <input type="text" id="instructionbox">
-      </form>
-    </div>
+      <table>
+        <tr>
+          <td id="teammate"></td>
+          <td id="score"></td>
+          <td id="whoseturn"></td>
+          <td></td>
+        </tr>
+        <tr><td colspan=4>
+            <form><input type="button" value="Instruct" style="height:30px">
+                <input type="text" id="instructionbox">
+              </td></tr>
+            </form>
+          </div>
 
   </body>
 </html>

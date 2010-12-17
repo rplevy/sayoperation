@@ -9,7 +9,7 @@
        (let [id (re-gsub #"[^a-z]" "" (lower-case id))]
          (and (> (count id) 2)
               id))))
-
+  
 (defn valid-act-move [move]
   (and
    (vector? move)
@@ -39,7 +39,8 @@
   [[param-names param-type-map] & body]
   `(try
      (let [~(vec param-names) (vec (valid ~param-type-map))]
-       (if (some false? ~param-names)
+       (if (or (some false? ~param-names)
+               (some nil? ~param-names))
          {:error "invalid input"}
          (do
            ~@body)))

@@ -30,9 +30,9 @@ The high-level architecture of the application looks like this:
           /|\             |
            |              |
            | 3           \|/
-    x-------------------------x
-    |Back-end (Tomcat/Clojure)|
-    x-------------------------x
+    x------------------------x
+    |Back-end (Jetty/Clojure)|
+    x------------------------x
 
     Types of messages:
       1. Subscribe message is passed from 
@@ -113,12 +113,7 @@ Middle-end setup
 
 Back-end Setup
 
-  Tomcat is assumed to run on port 8080.  To deploy the servlet to run in Tomcat, do as follows:
-
-    lein uberwar
-
-    TODO: COMPLETE THE INSTRUCTIONS
-
+  Tomcat or Jetty is assumed to run on port 8080.  To deploy the servlet, use leiningen with the WAR plugin to create a WAR file. During development I've preferred Jetty over Tomcat due to its closer integration with the natural REPL work flow of emacs swank, slime, and leiningen.
 
 ## License
 

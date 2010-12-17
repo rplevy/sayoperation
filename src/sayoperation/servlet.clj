@@ -13,21 +13,19 @@
 ;; compojure routes
 
 (defroutes sayoperation-routes
-  (POST "/sayop-svc/new-user/*" {{id "id"} :params :as request}
+  (POST "/sayop-svc/user/*" {{id "id"} :params :as request}
         (json-str
          (with-caution [[id] {:id id}]
            (dosync
-            (def-user id)
-            (notify-all (json-str (global-data)) @*users* id))
-           id)))
-  
-  (GET "/sayop-svc/returning-user/*" {{id "id"} :params :as request}
-       (json-str
-        (with-caution [[id] {:id id}]
-          (dosync
-           (heard-from id)
-           (notify-all (json-str (global-data)) @*users* id))
-          (or (game-state id) id))))
+            (notify-all (json-str (global-data)) @*users* id)
+            (if (returning-user id)
+              (do ;; returning user
+                (heard-from id)
+                (or (game-state id) id))
+              (do ;; new user
+                (def-user id)
+                (notify-all (json-str (global-data)) @*users* id)
+                id))))))
   
   (POST "/sayop-svc/new-game/*" {{id1 "id1" id2 "id2"} :params :as request}
         (json-str

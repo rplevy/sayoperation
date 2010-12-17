@@ -25,6 +25,9 @@
     (- (now) last-ping)
     *idle*))
 
+(defn returning-user [id]
+  (some (partial = id) (map key @*users*)))
+
 (defn online? [id]
   (< (last-heard-from id) *idle*))
 
