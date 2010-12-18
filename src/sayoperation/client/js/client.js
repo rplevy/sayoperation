@@ -1,3 +1,5 @@
+function dump(x) { alert(x.toSource()); }
+
 function sayop_svc(service, data, responsefn) {
     $.ajax({
         url: '/sayop-svc/' + service + "/" ,
@@ -44,7 +46,7 @@ function init(id, data) {
                   {id:id},
                   function(data) {
                       if (data.error) {
-                          alert(data.toSource());
+                          dump(data);
                       } else {
                           $.cookie("username", id, { expires: 365 });
                           // init and go to the new-game page
@@ -92,8 +94,8 @@ function user() {
                       } else {
                           $.cookie("username", $("#username").val(), { expires: 365 });
                           // init and go to the game-play page
-                          init($.cookie("username"),data);
                           page("play");
+                          init($.cookie("username"),data);
                       }
                   })
     } else {
@@ -103,12 +105,12 @@ function user() {
 
 function new_game(otherperson) {
     var id = $.cookie("username");
-    sayop_svc("new_game",
+    sayop_svc("new-game",
               {id1:id,
                id2:otherperson},
               function(data) {
                   if (data.error) {
-                      alert(data.toSource());
+                      dump(data);
                   } else {
                       // init and go to the new-game page
                       update_client_state(data);
@@ -118,29 +120,45 @@ function new_game(otherperson) {
 
 }
 
-function newgame_link(user) {
-    if (user == $.cookie("username")) {
-        return "<span class=\"names\">"+user+"</span>";
-    } else {
-        return $("<a class=\"names\" alt=\"play a game with "+user+
-                 "\" href=\"javascript:new_game(\'"+user+
-                 "\');>"+user+
-                 "</a>").hover(function(){$(this).append($("<span style=\"color:green;\"> ... Click to Start a Game!</tiny></span>"));}, 
-                               function(){$(this).find("span:last").remove();});
-    }
-}
+function newgame_link(user,status) {
+    return $("<nobr></nobr>").append(
+        ((function(){
+            if (user == $.cookie("username")) {
+                return $("<span class=\"names\">"+user+"</span>");
+            } else {
+                return $("<span class=\"names\"></span>").append(
+                    $("<a class=\"names\" alt=\"play a game with " + user +
+                      "\" href=\"javascript:new_game(\'" + user +
+                      "\');\" " + 
+                      ((status=="online")?"style=\"color:green\"":"")
+                      +">" +user + "</a>").hover(
+                          function(){$(this).css("background-color","black");
+                                     $("#peopleheading").css("background-color","black").text("Click to Play!");},
+                          function(){$(this).css("background-color","transparent");
+                                     $("#peopleheading").css("background-color","transparent").text("people:");}));
+            }})()).prepend(
+                $(((status=="online")?"<img src=\"png/online.png\">":""))))}
 
+var teammate;
 
 function update_client_state(data) {
     // users online
     var on = $("#online");
-    on.fadeOut();
+    var off = $("#offline");
+    on.hide();
+    off.hide();
     on.html('');
+    off.html('');
     $.each(data['global-data']['users-online'],
            function(k,v){
                on.append(' / ').append(
-                   newgame_link(data['global-data']['users-online'][k]));});
+                   newgame_link(data['global-data']['users-online'][k],"online"));});
+    $.each(data['global-data']['users-offline'],
+           function(k,v){
+               off.append(' / ').append(
+                   newgame_link(data['global-data']['users-offline'][k],"idle"));});
     on.fadeIn();
+    off.fadeIn();
 
     // personal high score
     var ph = $("#personalhigh");
@@ -167,7 +185,7 @@ function update_client_state(data) {
         var id = data['next-event']['whoseturn'];
         var team = data['next-event-team'];
         var teammateindex = (team[0] == id) ? 1 : 0;
-        var teammate = team[teammateindex];
+        teammate = team[teammateindex]; // setting a global var
         t.text('Teammate: ' + teammate);
         s.text('Score: ' + data['next-event']['score']);
 
@@ -183,14 +201,36 @@ function update_client_state(data) {
         // coords from 'x-y'
         var rgx = /([0-9]+)-([0-9]+)/;
 
-        // clear/set content of pieces
+        // clear/set content of pieces, and position too
+        var playx = $("#play").position().left;
+        var playy = $("#play").position().top;
         $(".draggable").each(function(k,e){
-            var captures = rgx(this.name);
+            var captures = rgx(this.id);
             var x = captures[1];
             var y = captures[2];
             var piece = pieces["[" + x + 
                                " " + y + "]"];
-            this.text((!piece ? '' : piece));
+            if (!piece) { 
+                $(this).text(''); 
+            } else { 
+                $(this).append($('<img src="png/'+piece+'.png">')) 
+            }
+
+            if ((subject[0] == x) &&
+                (subject[1] == y)) {
+                $(this).css("border","dashed red"); 
+            } else {
+                $(this).css("border","none"); 
+            }
+
+            if ((target[0] == x) &&
+                (target[1] == y)) {
+                $(this).css("background-color","green"); 
+            } else {
+                $(this).css("background-color","transparent"); 
+            }
+
+            $(this).offset({left:(x*80)+playx+10,top:(y*80)+playy+10});
         });
 
         // add drag-drop behavior to all draggable nodes
@@ -198,7 +238,7 @@ function update_client_state(data) {
             { grid: [ 80, 80 ], 
               containment: "#play",
               stop: function () {
-                  var captures = rgx(this.name);
+                  var captures = rgx(this.id);
                   var x = captures[1];
                   var y = captures[2];
                   
@@ -232,6 +272,22 @@ function update_client_state(data) {
     }
 }
 
+
+function instruct_move() {
+    var id = $.cookie("username");
+    sayop_svc("update-game", 
+              {id1: id,
+               id2: teammate,
+               move: "{\"subject\":["+x+","+y+
+               "],\"target\":["+
+               (($(this).position().left - 10) / 80)+","+
+               (($(this).position().top - 10) / 80)+"]}"});
+
+    alert('updating game ['+id+','+teammate+'] with move '+
+          "{\"instruction\":\""+$("#instructionbox").val()+"\"}");
+    return false;
+}
+
 $(document).ready(function(){
     // warning for browser support
     if (! navigator.userAgent.match(/^.*Mozilla.*|^.*Chrome.*/)) {
@@ -242,7 +298,7 @@ $(document).ready(function(){
     if (! $.cookie("username")) {
         page("login");
     } else {
-        init($.cookie("username"), false);
         page("play");
+        init($.cookie("username"), false);
     }
 });

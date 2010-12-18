@@ -34,6 +34,9 @@
 (defn users-online []
   (map key (filter (comp online? key) @*users*)))
 
+(defn users-offline []
+  (map key (filter (comp not online? key) @*users*)))
+
 ;; board functions
 
 (defn board-positions []
@@ -167,6 +170,7 @@
    some cases (when holder of high score changes,
    or when another user comes online)"
   {:users-online (users-online)
+   :users-offline (users-offline)
    :high-score (high-score)
    :high-score-team (high-score-team)})
 

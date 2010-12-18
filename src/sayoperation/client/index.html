@@ -49,28 +49,28 @@
     </div>
 
     <div id="play" class="middlepane">
-      <div name="0-0" class="draggable ui-widget-content"></div>
-      <div name="1-0" class="draggable ui-widget-content"></div>
-      <div name="2-0" class="draggable ui-widget-content"></div>
-      <div name="3-0" class="draggable ui-widget-content"></div>
-      <div name="4-0" class="draggable ui-widget-content"></div>
-      <div name="5-0" class="draggable ui-widget-content"></div>
-      <div name="0-1" class="draggable ui-widget-content"></div>
-      <div name="1-1" class="draggable ui-widget-content"></div>
-      <div name="2-1" class="draggable ui-widget-content"></div>
-      <div name="3-1" class="draggable ui-widget-content"></div>
-      <div name="4-1" class="draggable ui-widget-content"></div>
-      <div name="5-1" class="draggable ui-widget-content"></div>
-      <div name="0-2" class="draggable ui-widget-content"></div>
-      <div name="1-2" class="draggable ui-widget-content"></div>
-      <div name="2-2" class="draggable ui-widget-content"></div>
-      <div name="3-2" class="draggable ui-widget-content"></div>
-      <div name="4-2" class="draggable ui-widget-content"></div>
-      <div name="5-2" class="draggable ui-widget-content"></div>
+      <div id="0-0" class="draggable ui-widget-content"></div>
+      <div id="1-0" class="draggable ui-widget-content"></div>
+      <div id="2-0" class="draggable ui-widget-content"></div>
+      <div id="3-0" class="draggable ui-widget-content"></div>
+      <div id="4-0" class="draggable ui-widget-content"></div>
+      <div id="5-0" class="draggable ui-widget-content"></div>
+      <div id="0-1" class="draggable ui-widget-content"></div>
+      <div id="1-1" class="draggable ui-widget-content"></div>
+      <div id="2-1" class="draggable ui-widget-content"></div>
+      <div id="3-1" class="draggable ui-widget-content"></div>
+      <div id="4-1" class="draggable ui-widget-content"></div>
+      <div id="5-1" class="draggable ui-widget-content"></div>
+      <div id="0-2" class="draggable ui-widget-content"></div>
+      <div id="1-2" class="draggable ui-widget-content"></div>
+      <div id="2-2" class="draggable ui-widget-content"></div>
+      <div id="3-2" class="draggable ui-widget-content"></div>
+      <div id="4-2" class="draggable ui-widget-content"></div>
+      <div id="5-2" class="draggable ui-widget-content"></div>
     </div>
 
     <div id="ml" class="middlepane">
-      Check here in a few weeks for a demo of natural language understanding (automatic game play) once we've collected enough training data. 
+      Check here in a day or so for a demo of the natural language understanding features (automatic game play) once we've collected enough training data. 
     </div>
 
     <div id="menu">
@@ -82,9 +82,9 @@
       <ul>
         <p class="names" id="personalhigh"></p>
       </ul>
-      <h4>people online:</h4>
-        <p class="names" id="online">
-        </p>
+      <h4 id="peopleheading">people:</h4>
+      <span class="names" id="online"></span>
+      <span class="names" id="offline"></span>
     </div>
 
     <div id="talk">
@@ -95,12 +95,20 @@
           <td id="whoseturn"></td>
           <td></td>
         </tr>
-        <tr><td colspan=4>
-            <form><input type="button" value="Instruct" style="height:30px">
-                <input type="text" id="instructionbox">
-              </td></tr>
-            </form>
-          </div>
-
+        <tr>
+          <td colspan=4>
+            <span id="instruct">
+              <form onSubmit="return instruct_move();">
+                <input type="submit" value="Instruct" style="height:30px"></input>
+                <input type="text" id="instructionbox"></input>
+              </form>
+            </span>
+            <span id="act">
+            </span>
+          </td>
+        </tr>
+      </table>
+    </div>
   </body>
 </html>
+

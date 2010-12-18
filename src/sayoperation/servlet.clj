@@ -17,15 +17,15 @@
         (json-str
          (with-caution [[id] {:id id}]
            (dosync
-            (notify-all (json-str (global-data)) @*users* id)
+            (notify-all (json-str {:global-data (global-data)})
+                        @*users* id)
             (if (returning-user id)
               (do ;; returning user
                 (heard-from id)
-                (or (game-state id) id))
+                (or (game-state id) {:global-data (global-data)}))
               (do ;; new user
                 (def-user id)
-                (notify-all (json-str (global-data)) @*users* id)
-                id))))))
+                {:global-data (global-data)}))))))
   
   (POST "/sayop-svc/new-game/*" {{id1 "id1" id2 "id2"} :params :as request}
         (json-str
@@ -48,7 +48,8 @@
                 (update-game id1 id2 (read-json move))
                 ;; notify everyone if high-score title changed hands
                 (when (not= hst (high-score-team))
-                  (notify-all (json-str (global-data)) @*users* id1)))
+                  (notify-all (json-str {:global-data (global-data)})
+                              @*users* id1)))
               (when (ready? id2)
                 (notify id2 (json-str (game-state id2)))))
              (game-state id1))))
