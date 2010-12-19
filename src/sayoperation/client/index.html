@@ -88,8 +88,8 @@
     </div>
 
     <div id="talk">
-      <table>
-        <tr>
+      <table width="100%">
+        <tr id="gamestatus">
           <td id="teammate"></td>
           <td id="score"></td>
           <td id="whoseturn"></td>
@@ -97,13 +97,16 @@
         </tr>
         <tr>
           <td colspan=4>
-            <span id="instruct">
+            <span id="instruct" class="bottompanel">
               <form onSubmit="return instruct_move();">
                 <input type="submit" value="Instruct" style="height:30px"></input>
                 <input type="text" id="instructionbox"></input>
               </form>
             </span>
-            <span id="act">
+            <span id="act" class="bottompanel">
+            </span>
+            <span id="wait" class="bottompanel">
+              You don't have any turns right now. Click on people's names to create additional sayoperations.
             </span>
           </td>
         </tr>
