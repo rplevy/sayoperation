@@ -204,7 +204,8 @@ function update_client_state(data) {
         $(this).html('');
         $(this).css({"border":"none",
                      "visibility":"hidden"})});
-        
+    $("#instructionbox").val("");
+
     // render game state if user has any pending moves
     if (!data['next-event']) {
         bottom_panel("wait");
