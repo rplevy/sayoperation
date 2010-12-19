@@ -52,7 +52,7 @@ function subscribe(id, last_modified, etag) {
             if (data['global-data']) {
                 update_client_state(data);
             }
-            // renew subscription, to continue recieving messages
+            // renew subscription, to continue receiving messages
             subscribe(id, last_modified, etag);
         },
         error: function(data) {
@@ -202,8 +202,9 @@ function update_client_state(data) {
     // clear the board
     $(".draggable").each(function(k,e) { 
         $(this).html('');
-        $(this).css("border", "none")});
-
+        $(this).css({"border":"none",
+                     "visibility":"hidden"})});
+        
     // render game state if user has any pending moves
     if (!data['next-event']) {
         bottom_panel("wait");
@@ -246,6 +247,7 @@ function update_client_state(data) {
 
             if (piece) { 
                 $(this).html('<img src="png/'+piece+'.png">') 
+                $(this).css("visibility","visible"); 
                 if ((turntype == "instruct") &&
                     (subject[0] == x) &&
                     (subject[1] == y)) {
@@ -256,7 +258,8 @@ function update_client_state(data) {
             if ((turntype == "instruct") &&
                 (target[0] == x) &&
                 (target[1] == y)) {
-                $(this).css("border","dashed red"); 
+                $(this).css({"border":"dashed red",
+                             "visibility":"visible"}); 
             }
 
             $(this).offset({left:((x*80)+playx+10),top:((y*80)+playy+10)});
@@ -265,41 +268,39 @@ function update_client_state(data) {
         // add drag-drop behavior to all draggable nodes
         //$(function() { 
         $(".draggable").draggable(
-            { grid: [ 80, 80 ], 
-              containment: "#play",
+            { containment: "#play",
               stop: function () {
                   var captures = rgx(this.id);
-                  var x = captures[1];
-                  var y = captures[2];
+                  var sx = (captures[1] * 1)
+                  var sy = (captures[2] * 1)
+                  var tx = Math.round(($(this).position().left - 10) / 80);
+                  var ty = Math.round(($(this).position().top - 10) / 80);
                   
-                  debug({id1: id,
-                         id2: teammate,
-                         move: {"subject":[x,y],
-                                "target":[
-                                    (($(this).position().left - 10) / 80),
-                                    (($(this).position().top - 10) / 80)]}})
-
-                  /**
+                  // snap!
+                  $(this).offset({left:((tx*80)+playx+10),
+                                  top:((ty*80)+playy+10)});
+                  
                   sayop_svc_json("update-game",
-                                 {id1: id,
-                                  id2: teammate,
-                                  move: {"subject":[x,y],
-                                         "target":[
-                                             (($(this).position().left - 10) / 80),
-                                             (($(this).position().top - 10) / 80)]}}) **/
-
-              }});
+                                 with_trace("sending action move data to update-game service",
+                                            {id1: id,
+                                             id2: teammate,
+                                             move: {"subject":[sx,sy],
+                                                    "target":[tx,ty]}}),
+                                 function(data) {
+                                     trace(["received data in response to action move update", data]);
+                                     update_client_state(data);
+                                 })}});
 
         if (turntype == "instruct") {
             // disable drag-drop behavior on draggable nodes
-            $(function() { $(".draggable").draggable('disable'); });
+            $(".draggable").draggable('disable');
         } else {
             // disable drag-drop behavior on draggable nodes
-            $(function() { $(".draggable").draggable('enable'); });
+            $(".draggable").draggable('enable');
         }
     }
 }
-
+                         
 function instruct_move() {
     var id = $.cookie("username");
 
@@ -312,8 +313,7 @@ function instruct_move() {
                        if (data.error) {
                            alert(data.error);
                        } else {
-                           trace(["recieved data from instruct_move call to update-game", data]);
-                           // go to the new-game page and update state
+                           trace(["received data from instruct_move call to update-game", data]);
                            update_client_state(data);
                        }
                    });
