@@ -3,7 +3,7 @@
   (:use
    clojure.core compojure.core
    ring.adapter.jetty ring.util.servlet
-   (clojure.contrib pprint json str-utils)
+   (clojure.contrib pprint json str-utils logging)
    [clojure.contrib.http.agent :only (http-agent)]
    (sayoperation core utils persistence validation comm))
   (:require [compojure.route :as route]))
@@ -37,22 +37,24 @@
               (notify id2 (json-str (game-state id2))))
             (game-state id1)))))
   
-  (POST "/sayop-svc/update-game/*" {{id1 "id1" id2 "id2"
-                                     move "move"}
-                                    :params :as request}
-          (json-str
-           (with-caution [[id1 id2 move] {:id1 id1 :id2 id2 :move move}]
+  (POST "/sayop-svc/update-game/*" request
+        
+        (json-str
+         (let [move-data (read-json (slurp (:body request)))]
+           (with-caution [[id1 id2 move] {:id1 (:id1 move-data)
+                                          :id2 (:id2 move-data)
+                                          :move (:move move-data)}]
              (dosync
               (heard-from id1)
               (let [hst (high-score-team)]
-                (update-game id1 id2 (read-json move))
+                (update-game id1 id2 move)
                 ;; notify everyone if high-score title changed hands
                 (when (not= hst (high-score-team))
                   (notify-all (json-str {:global-data (global-data)})
                               @*users* id1)))
               (when (ready? id2)
                 (notify id2 (json-str (game-state id2)))))
-             (game-state id1))))
+             (game-state id1)))))
   
   ;; these routes not actual services, just for test
   (GET ["/sayop-svc/test/:id" :id #"[0-9]+"] {{id "id"} :params :as request}

@@ -9,20 +9,27 @@
        (let [id (re-gsub #"[^a-z]" "" (lower-case id))]
          (and (> (count id) 2)
               id))))
-  
+
+(defn valid-coordinates? [coords]
+  (and
+   (vector? coords)
+   (= 2 (count coords))
+   (number? (first coords)) 
+   (number? (second coords))))
+
 (defn valid-act-move [move]
   (and
-   (vector? move)
-   (= 2 (count move))
-   (number? (first move))
-   (number? (second move))
+   (map? move)
+   (valid-coordinates? (:subject move))
+   (valid-coordinates? (:target move))
    move))
           
 (defn valid-instruct-move [move]
   (and
-   (string? move)
-   (let [move (re-gsub #"[^a-z\s]" "" (lower-case move))]
-     move)))
+   (map? move)
+   (string? (:instruction move))
+   (let [move-str (re-gsub #"[^a-z\s]" "" (lower-case (:instruction move)))]
+     {:instruction move-str})))
 
 (defn valid-move [move]
   (and move

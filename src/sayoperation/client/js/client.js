@@ -1,6 +1,9 @@
-function dump(x) { alert(x.toSource()); }
+var debug_mode=false;
+function dump(x) { if(debug_mode){ alert(x.toSource()); }}
 
+// for api calls that post data in query string params
 function sayop_svc(service, data, responsefn) {
+    dump(["calling service",service,data]);
     $.ajax({
         url: '/sayop-svc/' + service + "/" ,
         data: data, 
@@ -9,7 +12,20 @@ function sayop_svc(service, data, responsefn) {
         cache: 'false',
         success: responsefn})}
 
+// for api calls that post json data via body
+function sayop_svc_json(service, data, responsefn) {
+    dump(["calling json service ",service,data]);
+    $.ajax({
+        url: '/sayop-svc/' + service + "/" ,
+        data: JSON.stringify(data),
+        type: 'POST',
+        contentType: 'application/json',
+        dataType: 'json',
+        cache: 'false',
+        success: responsefn})}
+
 function subscribe(id, last_modified, etag) {
+    dump(["subscribing ",id]);
     $.ajax({
         'beforeSend': function(xhr) {
             xhr.setRequestHeader("If-None-Match", etag);
@@ -18,9 +34,10 @@ function subscribe(id, last_modified, etag) {
         url: '/sayop/sub',
         data: {id: id},
         dataType: 'text',
-        type: 'get',
+        type: 'GET',
         cache: 'false',
         success: function(data, textStatus, xhr) {
+            dump(["received server push data",data]);
             etag = xhr.getResponseHeader('Etag');
             last_modified = xhr.getResponseHeader('Last-Modified');
             // interpret data response for GUI display
@@ -31,6 +48,7 @@ function subscribe(id, last_modified, etag) {
             subscribe(id, last_modified, etag);
         },
         error: function(data) {
+            dump(["retrying after push subscription failure ",data]);
             // lost connection, try again in 10 seconds
             window.setTimeout('subscribe(' + '\'' + id            + '\', '
                                            + '\'' + last_modified + '\', '
@@ -40,25 +58,27 @@ function subscribe(id, last_modified, etag) {
     });
 };
 
-function init(id, data) {
-    if(!data) {
-        sayop_svc("user",
-                  {id:id},
-                  function(data) {
-                      if (data.error) {
-                          dump(data);
-                      } else {
-                          $.cookie("username", id, { expires: 365 });
-                          // init and go to the new-game page
-                          update_client_state(data);
-                          subscribe(id, '', '');
-                      }
-                  });
-    } else { 
-        update_client_state(data);
-        subscribe(id, '', '');
-    }
-}
+// function init(id, data) {
+//     dump(["init",id,data]);
+//     if(!data) {
+//         sayop_svc("user",
+//                   {id:id},
+//                   function(data) {
+//                       if (data.error) {
+//                           alert(data.error);
+//                       } else {
+//                           dump(["receieved data from user service call from init. now calling update_client_state",data]);
+//                           $.cookie("username", id, { expires: 365 });
+//                           update_client_state(data);
+//                           //subscribe(id, '', '');
+//                       }
+//                   });
+//     } else { 
+//         dump(["calling update_client_state from init",data]);
+//         update_client_state(data);
+//         //subscribe(id, '', '');
+//     }
+// }
 
 function page(id) {
     if ($.cookie("username")) { 
@@ -74,47 +94,48 @@ function page(id) {
     $("#"+id).fadeIn();
 }
 
-function send_move(x,y) {
-    alert("(" + x + " " + y + ")");
-    // send request to api
-}
-
 function validate_username() {
     var username = $("#username").val();
     return username.match(/^[a-z]+$/);
 }
 
-function user() {
+function load_user(id) {
+    // user id is saved in the cookie only after validation
+    if (!id) {
+        id = $("#username").val();
+    }
+
+    dump(["calling user service from load_user",id]);
     if (validate_username()) {
         sayop_svc("user",
-                  {id:$("#username").val()},
+                  {id:id},
                   function(data) {
                       if (data.error) {
                           alert(data.error);
                       } else {
+                          dump(["received data from call from load_user",data]);
                           $.cookie("username", $("#username").val(), { expires: 365 });
-                          // init and go to the game-play page
-                          page("play");
-                          init($.cookie("username"),data);
+                          update_client_state(data);
                       }
-                  })
+                  });
     } else {
         alert("Invalid Alias. Please choose one with only letters.");
     }
 }
 
 function new_game(otherperson) {
+    dump(["calling service from new_game ",otherperson]);
     var id = $.cookie("username");
     sayop_svc("new-game",
               {id1:id,
                id2:otherperson},
               function(data) {
                   if (data.error) {
-                      dump(data);
+                      alert(data.error);
                   } else {
-                      // init and go to the new-game page
+                      dump(["received data from call from new_game",data]);
                       update_client_state(data);
-                      subscribe(id, '', '');
+                      //subscribe(id, '', '');
                   }
               });
 
@@ -140,8 +161,14 @@ function newgame_link(user,status) {
                 $(((status=="online")?"<img src=\"png/online.png\">":""))))}
 
 var teammate;
-
+var playx = 8;
+var playy = 125;
 function update_client_state(data) {
+    dump(["update_client_state",data]);
+    page("play"); // to ensure that referred-to elements are visible
+
+    //dump(data);
+
     // users online
     var on = $("#online");
     var off = $("#offline");
@@ -175,9 +202,9 @@ function update_client_state(data) {
             data['global-data']['high-score-team'][1]+': '+
             data['global-data']['high-score']);
     gh.fadeIn();
-
+    
     // render game state if user has any pending moves
-
+    
     if (data['next-event']) {
         var t = $("#teammate");
         var s = $("#score");
@@ -188,7 +215,7 @@ function update_client_state(data) {
         teammate = team[teammateindex]; // setting a global var
         t.text('Teammate: ' + teammate);
         s.text('Score: ' + data['next-event']['score']);
-
+        
         w.text(id + '\'s turn to ' + 
                data['next-event']['turn']);
         
@@ -200,41 +227,36 @@ function update_client_state(data) {
         // regex function to get 
         // coords from 'x-y'
         var rgx = /([0-9]+)-([0-9]+)/;
-
-        // clear/set content of pieces, and position too
-        var playx = $("#play").position().left;
-        var playy = $("#play").position().top;
+        
+        $(".draggable").each(function(k,e){ $(this).css("border", "none"); })
+        
         $(".draggable").each(function(k,e){
             var captures = rgx(this.id);
             var x = captures[1];
             var y = captures[2];
-            var piece = pieces["[" + x + 
-                               " " + y + "]"];
-            if (!piece) { 
-                $(this).text(''); 
-            } else { 
-                $(this).append($('<img src="png/'+piece+'.png">')) 
-            }
+            var piece = pieces["[" + x + " " + y + "]"];
 
-            if ((subject[0] == x) &&
-                (subject[1] == y)) {
-                $(this).css("border","dashed red"); 
-            } else {
-                $(this).css("border","none"); 
+            $(this).html(''); 
+            if (piece) { 
+                $(this).html('<img src="png/'+piece+'.png">') 
+                if ((subject[0] == x) &&
+                    (subject[1] == y)) {
+                    $(this).css("border","dashed green"); 
+                }
             }
-
+            
             if ((target[0] == x) &&
                 (target[1] == y)) {
-                $(this).css("background-color","green"); 
-            } else {
-                $(this).css("background-color","transparent"); 
+                $(this).css("border","dashed red"); 
             }
 
-            $(this).offset({left:(x*80)+playx+10,top:(y*80)+playy+10});
+            //dump({left:((x*80)+playx+10),top:((y*80)+playy+10)});
+            $(this).offset({left:((x*80)+playx+10),top:((y*80)+playy+10)});
         });
 
         // add drag-drop behavior to all draggable nodes
-        $(function() { $(".draggable").draggable(
+        //$(function() { 
+        $(".draggable").draggable(
             { grid: [ 80, 80 ], 
               containment: "#play",
               stop: function () {
@@ -242,20 +264,20 @@ function update_client_state(data) {
                   var x = captures[1];
                   var y = captures[2];
                   
-                  alert('updating game ['+id+','+teammate+'] with move '+
-                        "{\"subject\":["+x+","+y+"],\"target\":["+
-                        (($(this).position().left - 10) / 80)+","+
-                        (($(this).position().top - 10) / 80)+"]}");
-                      //sayop_svc("update-game", 
-                      //          {id1: id,
-                      //           id2: teammate,
-                      //           move: "{\"subject\":["+x+","+y+
-                      //           "],\"target\":["+
-                      //           (($(this).position().left - 10) / 80)+","+
-                      //           (($(this).position().top - 10) / 80)+"]}"}
-                      //);
-              }})});
-
+                  dump({id1: id,
+                        id2: teammate,
+                        move: {"subject":[x,y],
+                               "target":[
+                                   (($(this).position().left - 10) / 80),
+                                   (($(this).position().top - 10) / 80)]}})}});
+                  /**
+                  sayop_svc_json("update-game",
+                                 {id1: id,
+                                  id2: teammate,
+                                  move: {"subject":[x,y],
+                                         "target":[
+                                             (($(this).position().left - 10) / 80),
+                                             (($(this).position().top - 10) / 80)]}}) **/
         if (data['next-event']['turn'] == "instruct") {
             // disable drag-drop behavior on draggable nodes
             $(function() { $(".draggable").draggable('disable'); });
@@ -274,17 +296,25 @@ function update_client_state(data) {
 
 
 function instruct_move() {
-    var id = $.cookie("username");
-    sayop_svc("update-game", 
-              {id1: id,
-               id2: teammate,
-               move: "{\"subject\":["+x+","+y+
-               "],\"target\":["+
-               (($(this).position().left - 10) / 80)+","+
-               (($(this).position().top - 10) / 80)+"]}"});
+    dump(["instruct_move call", {id1: id,
+                                 id2: teammate,
+                                 move: {instruction: $("#instructionbox").val()}}]);
 
-    alert('updating game ['+id+','+teammate+'] with move '+
-          "{\"instruction\":\""+$("#instructionbox").val()+"\"}");
+    var id = $.cookie("username");
+
+    sayop_svc_json("update-game",
+                   {id1: id,
+                    id2: teammate,
+                    move: {instruction: $("#instructionbox").val()}},
+                   function(data) {
+                       if (data.error) {
+                           alert(data.error);
+                       } else {
+                           dump(["recieved data from instruct_move call to update-game", data]);
+                           // go to the new-game page and update state
+                           update_client_state(data);
+                       }
+                   });
     return false;
 }
 
@@ -296,9 +326,10 @@ $(document).ready(function(){
     
     // establish identity of user
     if (! $.cookie("username")) {
+        dump(["document is ready, no username"]);
         page("login");
     } else {
-        page("play");
-        init($.cookie("username"), false);
+        dump(["document is ready, using cookie username", $.cookie("username")]);
+        load_user($.cookie("username"));
     }
 });
