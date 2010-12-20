@@ -12,7 +12,7 @@ function with_debug(message, data) { debug([message, data]); return data; }
 // for api calls that post data in query string params
 function sayop_svc(service, data, responsefn) {
     trace(["calling service",service,data]);
-    $.ajax({
+    jQuery.ajax({
         url: '/sayop-svc/' + service + "/" ,
         data: data, 
         type: 'POST',
@@ -23,7 +23,7 @@ function sayop_svc(service, data, responsefn) {
 // for api calls that post json data via body
 function sayop_svc_json(service, data, responsefn) {
     trace(["calling json service ",service,data]);
-    $.ajax({
+    jQuery.ajax({
         url: '/sayop-svc/' + service + "/" ,
         data: JSON.stringify(data),
         type: 'POST',
@@ -32,47 +32,58 @@ function sayop_svc_json(service, data, responsefn) {
         cache: 'false',
         success: responsefn})}
 
+var subscribed=false;
 function subscribe(id, last_modified, etag) {
     trace(["subscribing ",id]);
-    $.ajax({
+    if (!id) { return false }
+    subscribed=id;
+    jQuery.ajax({
         'beforeSend': function(xhr) {
             xhr.setRequestHeader("If-None-Match", etag);
             xhr.setRequestHeader("If-Modified-Since", last_modified);
         },
         url: '/sayop/sub',
         data: {id: id},
-        dataType: 'text',
+        dataType: 'json',
         type: 'GET',
         cache: 'false',
         success: function(data, textStatus, xhr) {
+            // end the subscription if it is not for the user who is logged in
+            if (jQuery.cookie("username") != id) { return true; } 
+            
+            // update the client state based on the data received
             trace(["received server push data",data]);
             etag = xhr.getResponseHeader('Etag');
             last_modified = xhr.getResponseHeader('Last-Modified');
-            // interpret data response for GUI display
-            if (data['global-data']) {
-                update_client_state(data);
-            }
+            update_client_state(data);
+
             // renew subscription, to continue receiving messages
             subscribe(id, last_modified, etag);
         },
         error: function(data) {
+            // end the subscription if it is not for the user who is logged in
+            if (jQuery.cookie("username") != id) { return true; } 
+
             trace(["retrying after push subscription failure ",data]);
             // lost connection, try again in 10 seconds
             window.setTimeout('subscribe(' + '\'' + id            + '\', '
                                            + '\'' + last_modified + '\', '
                                            + '\'' + etag          + '\')',
-                              10);
-        }
-    });
-};
+                              10)}})};
+
+function listen(id) {
+    if (subscribed != id) {
+        subscribe(id, '', '');
+    }
+}
 
 function page(id) {
-    if ($.cookie("username")) { 
+    if (jQuery.cookie("username")) { 
         $("#loggedinas").text('Logged in as ' +
-                              $.cookie("username") + '.')} else {
+                              jQuery.cookie("username") + '.')} else {
                                   $("#loggedinas").text('Not logged in.')}
     // hide all pages and then show the selected page
-    $.each(["howto", "play", "new", "login", "ml"], 
+    jQuery.each(["howto", "play", "new", "login", "ml"], 
            function(i,v){ $("#"+v).hide(); });
     $("#"+id).fadeIn()}
 
@@ -117,8 +128,10 @@ function load_user(id) {
                           alert(data.error);
                       } else {
                           trace(["received data from call from load_user",data]);
-                          $.cookie("username", $("#username").val(), { expires: 365 });
+                          jQuery.cookie("username", id, { expires: 365 });
                           update_client_state(data);
+                          trace(["opening subscription to listen for notifications",id]);
+                          listen(id); // subscribe to notifications from server
                       }
                   });
     } else {
@@ -128,7 +141,7 @@ function load_user(id) {
 
 function new_game(otherperson) {
     trace(["calling service from new_game ",otherperson]);
-    var id = $.cookie("username");
+    var id = jQuery.cookie("username");
     sayop_svc("new-game",
               {id1:id,
                id2:otherperson},
@@ -138,7 +151,6 @@ function new_game(otherperson) {
                   } else {
                       trace(["received data from call from new_game",data]);
                       update_client_state(data);
-                      //subscribe(id, '', '');
                   }
               });
 
@@ -147,7 +159,7 @@ function new_game(otherperson) {
 function newgame_link(user,status) {
     return $("<nobr></nobr>").append(
         ((function(){
-            if (user == $.cookie("username")) {
+            if (user == jQuery.cookie("username")) {
                 return $("<span class=\"names\">"+user+"</span>");
             } else {
                 return $("<span class=\"names\"></span>").append(
@@ -167,7 +179,9 @@ var teammate;
 var playx = 8;
 var playy = 125;
 function update_client_state(data) {
-    trace(["update_client_state",data]);
+    debug(data['global-data']);
+    //if (!data) { return }
+    //trace(["update_client_state",data]);
     page("play"); // to ensure that referred-to elements are visible
 
     // online & offline users 
@@ -177,11 +191,11 @@ function update_client_state(data) {
     off.hide();
     on.html('');
     off.html('');
-    $.each(data['global-data']['users-online'],
+    jQuery.each(data['global-data']['users-online'],
            function(k,v){
                on.append(' / ').append(
                    newgame_link(data['global-data']['users-online'][k],"online"));});
-    $.each(data['global-data']['users-offline'],
+    jQuery.each(data['global-data']['users-offline'],
            function(k,v){
                off.append(' / ').append(
                    newgame_link(data['global-data']['users-offline'][k],"idle"));});
@@ -317,7 +331,7 @@ function update_client_state(data) {
 }
                          
 function instruct_move() {
-    var id = $.cookie("username");
+    var id = jQuery.cookie("username");
 
     sayop_svc_json("update-game",
                    with_trace("in instruct_move, making call to update game",
@@ -343,11 +357,11 @@ $(document).ready(function(){
     }
     
     // establish identity of user
-    if (! $.cookie("username")) {
+    if (! jQuery.cookie("username")) {
         trace(["document is ready, no username"]);
         page("login");
     } else {
-        trace(["document is ready, using cookie username", $.cookie("username")]);
-        load_user($.cookie("username"));
+        trace(["document is ready, using cookie username", jQuery.cookie("username")]);
+        load_user(jQuery.cookie("username"));
     }
 });

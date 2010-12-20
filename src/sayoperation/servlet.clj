@@ -32,10 +32,8 @@
          (with-caution [[id1 id2] {:id1 id1 :id2 id2}]
            (dosync
             (heard-from id1)
-            (def-game id1 id2)
-            (when (ready? id1)
-              (notify id2 (json-str (game-state id2))))
-            (game-state id1)))))
+            (def-game id1 id2))
+           (game-state id1))))
   
   (POST "/sayop-svc/update-game/*" request
         
