@@ -50,7 +50,7 @@
       "blue-moth" "crawfish" "red-frog"	"yellow-moth"])
 
 (defn get-pieces []
-  (take 7 (shuffle *pieces*)))
+  (take 9 (shuffle *pieces*)))
 
 (defn create-board []
   (let [pieces (reduce #(assoc %1 (first %2) (second %2))

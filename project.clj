@@ -1,4 +1,4 @@
-(defproject sayoperation "0.7.0-SNAPSHOT"
+(defproject sayoperation "1.0.0"
   :description "A game to collect data for experiments in machine learning of natural language semantics."
   :namespaces [sayoperation.servlet]
   :dependencies [[org.clojure/clojure "1.2.0"]

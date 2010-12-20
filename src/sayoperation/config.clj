@@ -1,6 +1,6 @@
 (ns sayoperation.config)
 
-(def *base-url* "http://127.0.1.1")
+(def *base-url* "http://robertplevy.net")
 
 (def *games-file* "data/games.txt")
 (def *users-file* "data/users.txt")

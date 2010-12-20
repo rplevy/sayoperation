@@ -49,7 +49,7 @@
      inkscape:zoom="0.62833333"
      inkscape:cx="347.34355"
      inkscape:cy="254.13759"
-     inkscape:window-x="-1"
+     inkscape:window-x="0"
      inkscape:window-y="-3"
      inkscape:current-layer="svg2"
      showgrid="false"
@@ -1727,7 +1727,10 @@
      id="path4398" />
   <g
      id="g5056"
-     transform="matrix(0.11445608,0,0,0.11445608,-6.0268503,-5.4782879)">
+     transform="matrix(0.11445608,0,0,0.11445608,-6.0268503,-5.4782879)"
+     inkscape:export-filename="/home/rob/sayoperation/resources/png/crab.png"
+     inkscape:export-xdpi="90"
+     inkscape:export-ydpi="90">
     <path
        id="path3367"
        style="color:#000000;fill:#999999;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1;marker:none;visibility:visible;display:inline;overflow:visible;filter:url(#filter4490);enable-background:accumulate"
