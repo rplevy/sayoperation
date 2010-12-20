@@ -164,14 +164,13 @@
     (apply max
            (map (comp :score val)
                 (if id
-                    (lookup-games (first id))
-                    @*games*)))))
+                  (lookup-games (first id))
+                  @*games*)))))
 
 (defn high-score-team []
   (if (empty? @*games*)
     ["no one" "no one"]
-    (-> (sort-by (comp :high-score val) @*games*) last key)))
-
+    (-> (sort-by (comp :score val) @*games*) last key)))
 
 (defn events [id]
   (filter #(= id (:whoseturn (val %)))
