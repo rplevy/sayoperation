@@ -4,6 +4,6 @@
 
 (def *games-file* "data/games.txt")
 (def *users-file* "data/users.txt")
-(def *results-file* "data/results.txt")
+(def *history-file* "data/history.txt")
 
 (def *idle* (* 10 60000)) ;; minutes

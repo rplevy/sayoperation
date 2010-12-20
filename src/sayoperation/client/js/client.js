@@ -1,9 +1,9 @@
 var trace_mode=false;
 var info_mode=false;
 var debug_mode=true;
-function trace(data) { if(trace_mode) { alert(data.toSource()) }}
-function info(data) { if(info_mode) { alert(data.toSource()) }}
-function debug(data) { if(debug_mode) { alert(data.toSource()) }}
+function trace(data) { if(trace_mode) { alert((undefined==data)?"undefined":data.toSource()) }}
+function info(data) { if(info_mode) { alert((undefined==data)?"undefined":data.toSource()) }}
+function debug(data) { if(debug_mode) { alert((undefined==data)?"undefined":data.toSource()) }}
 // print mesage w/ data while passing the data thru 
 function with_trace(message, data) { trace([message, data]); return data; }
 function with_info(message, data) { info([message, data]); return data; }
@@ -74,8 +74,7 @@ function page(id) {
     // hide all pages and then show the selected page
     $.each(["howto", "play", "new", "login", "ml"], 
            function(i,v){ $("#"+v).hide(); });
-    $("#"+id).fadeIn();
-}
+    $("#"+id).fadeIn()}
 
 
 function bottom_panel(turntype, instruction) { 
@@ -89,22 +88,19 @@ function bottom_panel(turntype, instruction) {
                            instruction["instruction"] + "</b>");
         }
     }
-    $("#"+turntype).fadeIn();
-}
+    $("#"+turntype).fadeIn()}
 
-function show_result(correct) {
-    $(correct ? "#correct" : "#incorrect").show().animate(
+function show_result(lastmovestatus) {
+    $("#"+lastmovestatus).show().animate(
         {width: "70%",
          opacity: 0.4,
          marginLeft: "0.6in",
          fontSize: "3em", 
          borderWidth: "10px"
-        }, 1500 ).fadeOut('slow');
-}
+        }, 1500 ).fadeOut('slow')}
 
 function validate_username(id) {
-    return id.match(/^[a-z]+$/);
-}
+    return id.match(/^[a-z]+$/)}
 
 function load_user(id) {
     // user id is saved in the cookie only after validation
@@ -241,8 +237,10 @@ function update_client_state(data) {
                                     instruction:instruction} : false);
 
         // if this is following an action turn, show result
-        var correct = data['next-event']['correct'];
-        if (correct != undefined) { show_result(correct); }
+        var lastmovestatus = data['last-correct'];
+        if (lastmovestatus && (lastmovestatus != "no move")) { 
+            show_result(lastmovestatus); 
+        }
 
         // the board
         var board = data['next-event']['board'];
@@ -295,6 +293,8 @@ function update_client_state(data) {
                   $(this).offset({left:((tx*80)+playx+10),
                                   top:((ty*80)+playy+10)});
                   
+                  trace(["actual subject target for comparison", subject,target]);
+
                   sayop_svc_json("update-game",
                                  with_trace("sending action move data to update-game service",
                                             {id1: id,

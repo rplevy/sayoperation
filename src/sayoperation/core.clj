@@ -7,7 +7,8 @@
 
 (def *users* (ref {}))
 
-(defn create-user [] {:last-ping (now)})
+(defn create-user [] {:last-ping (now)
+                      :last-move-correct "no move"})
 
 (defn def-user [id]
   (if (@*users* id) nil
@@ -134,9 +135,19 @@
         turn (:turn game)]
 
     ;; if the turn just taken was an action, record this data
-    (if (= turn "act")
-      (record-result game move))
+    (when (= turn "act")
+      (ref-set *history* (cons (as-map id1 id2 game move)
+                               @*history*)))
 
+    ;; record status of last move
+    (ref-set *users*
+             (update-in
+              @*users* [id1]
+              #(assoc % :last-move-correct
+                      (if (= turn "act") 
+                        (if (correct? game move) "correct" "incorrect")
+                        "no move"))))
+      
     (ref-set *games*
              (assoc @*games*
                (game-index id1 id2)               
@@ -148,14 +159,19 @@
                    [id1      "act"] (instruction-turn id1 game move))))))
 
 (defn high-score [& id]
-  (apply max
-         (map (comp :score val)
-              (if id
-                (lookup-games (first id))
-                @*games*))))
+  (if (empty? @*games*)
+    0
+    (apply max
+           (map (comp :score val)
+                (if id
+                    (lookup-games (first id))
+                    @*games*)))))
 
 (defn high-score-team []
-  (-> (sort-by (comp :high-score val) @*games*) last key))
+  (if (empty? @*games*)
+    ["no one" "no one"]
+    (-> (sort-by (comp :high-score val) @*games*) last key)))
+
 
 (defn events [id]
   (filter #(= id (:whoseturn (val %)))
@@ -179,6 +195,7 @@
     (let [[next-event-team
            next-event] (first (vec (take 1 (events id))))
            high-score (high-score id)
-           global-data (global-data)]
+           global-data (global-data)
+           last-correct (:last-move-correct (@*users* id))]
       (as-map next-event-team next-event
-              high-score global-data))))
+              high-score global-data last-correct))))
