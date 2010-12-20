@@ -92,8 +92,8 @@ function bottom_panel(turntype, instruction) {
     $("#"+turntype).fadeIn();
 }
 
-function validate_username() {
-    var username = $("#username").val(); return username.match(/^[a-z]+$/);
+function validate_username(id) {
+    return id.match(/^[a-z]+$/);
 }
 
 function load_user(id) {
@@ -103,7 +103,7 @@ function load_user(id) {
     }
 
     trace(["calling user service from load_user",id]);
-    if (validate_username()) {
+    if (validate_username(id)) {
         sayop_svc("user",
                   {id:id},
                   function(data) {
