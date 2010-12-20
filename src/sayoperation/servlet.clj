@@ -17,15 +17,18 @@
         (json-str
          (with-caution [[id] {:id id}]
            (dosync
-            (notify-all (json-str {:global-data (global-data)})
-                        @*users* id)
             (if (returning-user id)
               (do ;; returning user
                 (heard-from id)
+                (notify-all (json-str {:global-data (global-data)})
+                            @*users* id)
                 (or (game-state id) {:global-data (global-data)}))
               (do ;; new user
                 (def-user id)
-                {:global-data (global-data)}))))))
+                (notify-all (json-str {:global-data (global-data)})
+                            @*users* id)
+                {:global-data (global-data)})))
+           )))
   
   (POST "/sayop-svc/new-game/*" {{id1 "id1" id2 "id2"} :params :as request}
         (json-str

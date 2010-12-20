@@ -179,9 +179,8 @@ var teammate;
 var playx = 8;
 var playy = 125;
 function update_client_state(data) {
-    debug(data['global-data']);
-    //if (!data) { return }
-    //trace(["update_client_state",data]);
+    if (!data) { return }
+    trace(["update_client_state",data]);
     page("play"); // to ensure that referred-to elements are visible
 
     // online & offline users 
