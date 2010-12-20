@@ -53,8 +53,7 @@
                 (when (not= hst (high-score-team))
                   (notify-all (json-str {:global-data (global-data)})
                               @*users* id1)))
-              (when (ready? id2)
-                (notify id2 (json-str (game-state id2)))))
+              (notify id2 (json-str (game-state id2))))
              (game-state id1)))))
   
   ;; these routes not actual services, just for test
