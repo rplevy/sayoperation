@@ -75,6 +75,24 @@ body {
     font-size: 15pt;
 }
 
+#instruct {
+    display: none;
+}
+#act {
+    display: none;
+}
+#wait {
+    display: inline;
+}
+#correct {
+    display: none;
+    color: green;
+}
+#incorrect {
+    display: none;
+    color: red;
+}
+
 .err {
     color: #FF0000;
 }

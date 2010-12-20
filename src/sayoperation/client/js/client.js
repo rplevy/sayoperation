@@ -92,6 +92,16 @@ function bottom_panel(turntype, instruction) {
     $("#"+turntype).fadeIn();
 }
 
+function show_result(correct) {
+    $(correct ? "#correct" : "#incorrect").show().animate(
+        {width: "70%",
+         opacity: 0.4,
+         marginLeft: "0.6in",
+         fontSize: "3em", 
+         borderWidth: "10px"
+        }, 1500 ).fadeOut('slow');
+}
+
 function validate_username(id) {
     return id.match(/^[a-z]+$/);
 }
@@ -229,6 +239,10 @@ function update_client_state(data) {
         bottom_panel(turntype,
                      instruction ? {teammate:teammate,
                                     instruction:instruction} : false);
+
+        // if this is following an action turn, show result
+        var correct = data['next-event']['correct'];
+        if (correct != undefined) { show_result(correct); }
 
         // the board
         var board = data['next-event']['board'];
