@@ -7,8 +7,8 @@
 (def *history* (ref []))
 
 (defn save-state [games-ref users-ref]
-  (save-data games-ref *games-file*)
-  (save-data users-ref *users-file*))
+  (save-data @games-ref *games-file*)
+  (save-data @users-ref *users-file*))
 
 (defn restore-state [games-ref users-ref]
   (let [games (restore-data *games-file*)
@@ -31,7 +31,7 @@
   ;; a repeating schedule for save-state and save-history
   (defonce *schedule*
     (future (while true
-              (Thread/sleep (* *minute* 5))
+              (Thread/sleep (* 60000 5))
               (save-state games-ref users-ref)
               (save-history)))))
 

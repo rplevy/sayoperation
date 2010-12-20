@@ -26,4 +26,3 @@
 
 (defn now [] (. System currentTimeMillis))
 
-(defn *minute* [n] (* n 60000))
